@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -16,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - run: npm install
+      - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test

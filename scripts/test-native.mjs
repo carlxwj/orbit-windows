@@ -4,7 +4,9 @@ import path from 'node:path';
 import { normalizeInventory } from '../system/collectors/normalize.ts';
 const bridge=new NativeBridge(path.resolve('build/native/OrbitBridge.exe'));
 try{
- const ping=await bridge.request('ping');assert.equal(ping.version,'2.0.0');console.log('PASS : protocole du collecteur natif.');
+ // CI runners may need extra time to launch the .NET collector on the first request.
+ // Keep the application bridge default timeout unchanged; only this cold-start smoke test is relaxed.
+ const ping=await bridge.request('ping',{},20000);assert.equal(ping.version,'2.0.0');console.log('PASS : protocole du collecteur natif.');
  const result=await bridge.request('fast',{},15000);
  assert.equal(typeof result.timestamp,'number');
  if(result.audio){assert.ok(result.audio.volume>=0&&result.audio.volume<=100);assert.equal(typeof result.audio.muted,'boolean');console.log('PASS : lecture réelle du volume, sans modification.');}
