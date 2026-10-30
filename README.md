@@ -4,6 +4,9 @@
 
 **Application de bureau pour Windows 11 · Electron · React · TypeScript · C#**
 
+[![Source checks](https://github.com/carlxwj/orbit-windows/actions/workflows/checks.yml/badge.svg)](https://github.com/carlxwj/orbit-windows/actions/workflows/checks.yml)
+[![Windows build](https://github.com/carlxwj/orbit-windows/actions/workflows/windows.yml/badge.svg)](https://github.com/carlxwj/orbit-windows/actions/workflows/windows.yml)
+
 Orbit est une application de bureau conçue pour explorer son ordinateur depuis une interface claire, moderne et personnalisable. Elle réunit les informations matérielles, les mesures de performance et les périphériques dans un seul espace, sans passer par une page web.
 
 > **English summary:** Orbit is a privacy-conscious Windows 11 desktop application for exploring hardware, live performance, displays, storage, peripherals, and system information. It combines an Electron/React interface with a local C# collector. Hardware readings depend on what Windows and the device manufacturers expose.
