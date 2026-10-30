@@ -10,6 +10,10 @@ Orbit est une application de bureau conçue pour explorer son ordinateur depuis 
 
 **Statut du projet :** développement et validation en cours. Le code source est disponible ; le lancement de l'interface, la compatibilité matérielle et les installateurs doivent encore être vérifiés sur des configurations Windows réelles avant toute distribution générale.
 
+**Vérification continue :** [Tests de la source](https://github.com/carlxwj/orbit-windows/actions/workflows/checks.yml) · [Compilation Windows](https://github.com/carlxwj/orbit-windows/actions/workflows/windows.yml)
+
+Le workflow Windows a produit avec succès les cibles installable et portable le 30 octobre 2026. Ces exécutables ne sont pas signés et leur création ne garantit pas encore la compatibilité avec tous les matériels. Les fichiers de compilation sont disponibles comme artefacts des exécutions GitHub Actions, selon leur durée de conservation.
+
 ---
 
 ## Pourquoi Orbit ?
