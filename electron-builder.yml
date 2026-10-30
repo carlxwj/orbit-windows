@@ -1,0 +1,38 @@
+appId: fr.orbit.desktop
+productName: Orbit
+asar: true
+directories:
+  output: release
+  buildResources: assets
+files:
+  - dist-electron/**
+  - dist-renderer/**
+  - package.json
+  - THIRD_PARTY_NOTICES.md
+extraResources:
+  - from: build/native
+    to: native
+    filter: [OrbitBridge.exe]
+  - from: assets
+    to: assets
+    filter: [orbit.ico, orbit.png, third-party-licenses.txt]
+win:
+  icon: assets/orbit.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  requestedExecutionLevel: asInvoker
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: false
+  createStartMenuShortcut: true
+  shortcutName: Orbit
+  deleteAppDataOnUninstall: false
+  artifactName: Orbit-${version}-Installation.${ext}
+portable:
+  artifactName: Orbit-${version}-Portable.${ext}

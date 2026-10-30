@@ -1,0 +1,6 @@
+import type{FocusState}from './contracts.ts';
+export class FocusTimer{
+ state:FocusState={duration:1500,remaining:1500,deadline:null,running:false,completed:0,history:[]};
+ tick(now=Date.now(),keepHistory=false):boolean{if(!this.state.running||!this.state.deadline)return false;this.state.remaining=Math.max(0,Math.ceil((this.state.deadline-now)/1000));if(this.state.remaining>0)return false;if(keepHistory)this.state.history=[...this.state.history,{endedAt:this.state.deadline,minutes:this.state.duration/60}].slice(-100);this.state.running=false;this.state.deadline=null;this.state.completed++;return true;}
+ command(action:string,minutes?:number,now=Date.now()):FocusState{this.tick(now);if(action==='start'){if(!this.state.remaining)this.state.remaining=this.state.duration;this.state.deadline=now+this.state.remaining*1000;this.state.running=true;}else if(action==='pause'){this.state.running=false;this.state.deadline=null;}else if(action==='reset'){this.state.remaining=this.state.duration;this.state.running=false;this.state.deadline=null;}else if(action==='duration'){if(!Number.isInteger(minutes)||minutes!<1||minutes!>180)throw Error('Durée entre 1 et 180 minutes.');this.state.duration=minutes!*60;this.state.remaining=this.state.duration;this.state.running=false;this.state.deadline=null;}else throw Error('Action inconnue.');return structuredClone(this.state);}
+}

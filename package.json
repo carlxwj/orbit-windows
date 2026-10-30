@@ -1,0 +1,47 @@
+{
+  "name": "orbit-windows",
+  "productName": "Orbit",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Votre espace de contrôle Windows, simple et local.",
+  "type": "module",
+  "author": "Orbit",
+  "license": "UNLICENSED",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "electron .",
+    "native": "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint electron src shared system tests e2e --max-warnings=0",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:native": "node scripts/test-native.mjs",
+    "build": "npm run native && node scripts/build.mjs",
+    "dist": "npm run build && electron-builder --win --x64",
+    "archive": "node scripts/archive.mjs",
+    "benchmark:native": "node scripts/benchmark-native.mjs",
+    "test:desktop": "playwright test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "lucide-react": "^0.468.0",
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "electron": "45.1.0",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.0.0",
+    "vite": "~7.3.7",
+    "@playwright/test": "^1.56.0",
+    "playwright": "^1.56.0"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
