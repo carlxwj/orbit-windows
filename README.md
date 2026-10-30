@@ -1,75 +1,197 @@
-# Orbit 2.0 — application Windows d'observation du PC
+# Orbit 2.0
 
-**Electron · React · TypeScript · Vite · .NET / C# · Windows 11 · application locale**
+### Votre PC, en un coup d'œil.
 
-> **English:** Orbit is a desktop system-monitoring app for Windows. It exposes hardware, device, display and performance information through an Electron UI and a local native C# bridge. It is not a browser-only HTML dashboard.
+**Application de bureau pour Windows 11 · Electron · React · TypeScript · C#**
 
-## Objectif
+Orbit est une application de bureau conçue pour explorer son ordinateur depuis une interface claire, moderne et personnalisable. Elle réunit les informations matérielles, les mesures de performance et les périphériques dans un seul espace, sans passer par une page web.
 
-Proposer une application de bureau native dans son usage, au design épuré, pour comprendre son propre PC : processeur, carte graphique, mémoire, écrans, périphériques, réseau, disques, batterie lorsqu'elle est exposée par Windows et outils de concentration. **Le fait qu'un périphérique utilise un dongle USB/2,4 GHz ne garantit pas que Windows connaisse sa batterie.** Une valeur inconnue reste affichée comme telle, sans fabrication de pourcentage.
+> **English summary:** Orbit is a privacy-conscious Windows 11 desktop application for exploring hardware, live performance, displays, storage, peripherals, and system information. It combines an Electron/React interface with a local C# collector. Hardware readings depend on what Windows and the device manufacturers expose.
 
-## Fonctionnalités visibles dans les sources
+**Statut du projet :** développement et validation en cours. Le code source est disponible ; le lancement de l'interface, la compatibilité matérielle et les installateurs doivent encore être vérifiés sur des configurations Windows réelles avant toute distribution générale.
 
-- Tableau de bord matériel : CPU, GPU, RAM, carte mère, BIOS, mesures et graphiques.
-- Moniteurs : résolution, fréquence, écran, HDR et autres informations selon disponibilité Windows.
-- Stockage : disques physiques, volumes, capacité et données de santé exposées.
-- Périphériques : HID, USB, Bluetooth, identifiants et autonomie *lorsqu'elle est disponible*.
-- Réseau et audio : informations et fonctions disponibles depuis Windows.
-- Profil local Windows : nom et image si accessible ; avatar personnalisé en option.
-- Concentration, thèmes, préférences, raccourcis et recherche de fonctionnalités.
-- Traitement principalement **local**, sans API web de synchronisation des mesures dans la version fournie.
+---
 
-## Architecture source
+## Pourquoi Orbit ?
+
+Les informations d'un PC sont réparties entre de nombreux écrans et utilitaires Windows. Orbit cherche à les rendre plus faciles à consulter : **voir l'essentiel immédiatement, explorer les détails lorsque c'est nécessaire et conserver le contrôle de ses données**.
+
+L'interface s'inspire des applications de bureau modernes : navigation latérale, cartes lisibles, thèmes clair/sombre, graphiques et raccourcis clavier. Le projet est une application Electron autonome, **pas un simple site `index.html` ouvert dans un navigateur**.
+
+## Fonctionnalités
+
+| Espace | Informations et fonctions prévues dans le code |
+| --- | --- |
+| **Vue d'ensemble** | Synthèse du PC, état de la collecte et indicateurs essentiels. |
+| **Performances** | Mesures et courbes CPU, RAM, GPU, disque et réseau selon la disponibilité des sources Windows. |
+| **Matériel** | Processeur, carte graphique, mémoire, carte mère, BIOS et inventaire technique. |
+| **Périphériques** | Claviers, souris et autres appareils USB/HID/Bluetooth ; regroupement et personnalisation de leurs fiches. |
+| **Écrans** | Résolution, fréquence d'actualisation, informations EDID et état HDR lorsque Windows les fournit. |
+| **Stockage** | Disques physiques, partitions, volumes, capacités et certaines informations de santé disponibles. |
+| **Réseau** | Interfaces réseau, statistiques, Wi-Fi et informations de connexion exposées par le système. |
+| **Audio** | Sorties audio Windows, volume et sourdine via les interfaces système prises en charge. |
+| **Profil** | Nom du compte Windows et photo locale lorsqu'elle est accessible, avec possibilité d'avatar personnalisé. |
+| **Concentration** | Minuteur et préférences dédiées à la concentration. |
+| **Personnalisation** | Thèmes, préférences locales, barre latérale, navigation rapide et recherche `Ctrl + K`. |
+
+### Une information inconnue reste inconnue
+
+Orbit **n'invente pas les mesures**. Un périphérique sans niveau de batterie exploitable affiche une valeur indisponible : c'est notamment possible avec une souris ou un clavier sans fil connecté par un récepteur USB 2,4 GHz. Les protocoles de fabricants non documentés ne sont pas interrogés expérimentalement.
+
+De même, les relevés de température, de GPU, de batterie ou d'écran dépendent de Windows, des pilotes et des interfaces réellement exposées. Certaines fonctions peuvent être partielles ou indisponibles selon le matériel.
+
+## Technologies
+
+| Couche | Technologies |
+| --- | --- |
+| Interface | React 19, TypeScript, Vite, CSS, Lucide React |
+| Application de bureau | Electron 45, processus principal et preload |
+| Collecte système | C# / .NET Framework 4.x, API Windows, WMI, SMBIOS, DXGI, HID et autres sources disponibles |
+| Communication | IPC Electron contrôlé et échanges locaux JSON avec `OrbitBridge.exe` |
+| Tests et qualité | Node.js Test Runner, ESLint, TypeScript, Playwright (scénarios préparés) |
+| Distribution | electron-builder, installateur NSIS et cible portable pour Windows x64 |
+
+## Architecture
 
 ```text
-src/                 Interface React + TSX, pages et composants
-electron/main/       Processus Electron, IPC et contrôles d'accès
-electron/preload/    Passerelle contrôlée exposée à l'UI
-shared/              Contrats et validations partagées
-system/              Collecte Windows, bridge et code C# natif
-scripts/             Développement, build Windows, packaging et tests
-assets/              Icônes et mentions tierces
- docs/                Architecture, matériel, sécurité, installation, validation
- tests/               Tests de logique/sécurité Node
- e2e/                 Scénario de test Electron/Playwright
- .github/workflows/   Construction Windows prévue par le projet
+┌───────────────────────────────────┐
+│ Interface React / TypeScript      │
+│ Pages, graphiques et préférences  │
+└────────────────┬──────────────────┘
+                 │ API limitée window.orbit
+┌────────────────▼──────────────────┐
+│ Electron preload (contextBridge)  │
+│ Vérification et isolation IPC     │
+└────────────────┬──────────────────┘
+                 │
+┌────────────────▼──────────────────┐
+│ Electron main                     │
+│ Fenêtre, données locales, collecte│
+└────────────────┬──────────────────┘
+                 │ JSON local stdin/stdout
+┌────────────────▼──────────────────┐
+│ OrbitBridge.exe — C#              │
+│ APIs système Windows              │
+└───────────────────────────────────┘
 ```
 
-## Installer et tester sur Windows
+Le code de l'interface est séparé de la récupération des données matérielles. Cette séparation facilite la maintenance, les tests et la limitation des privilèges.
 
-**Prérequis :** Windows 11 x64, Node.js **22.18+**, npm, PowerShell, outillage système décrit dans [Installation](docs/INSTALLATION.md). Un build natif .NET sous Windows est nécessaire pour créer le collecteur `OrbitBridge.exe` ; il n'est pas versionné.
+Pour approfondir : [architecture technique](docs/ARCHITECTURE.md) et [sources et limites des mesures](docs/HARDWARE.md).
+
+## Installation et développement
+
+### Prérequis
+
+- **Windows 11 x64** ;
+- **Node.js 22.18 ou supérieur** et npm ;
+- **PowerShell** ;
+- compilateur C# du **.NET Framework 4.x** (`csc.exe`) disponible sur Windows pour construire le collecteur local.
+
+Depuis le dossier du projet :
 
 ```powershell
 npm ci
+npm run dev
+```
+
+`npm run dev` compile d'abord le collecteur C#, construit l'interface, puis lance la fenêtre Electron en mode développement. Aucune application web hébergée ni aucun serveur HTTP de développement n'est nécessaire.
+
+### Vérifier le code
+
+```powershell
 npm run typecheck
 npm run lint
 npm test
 npm run native
 npm run test:native
+```
+
+### Construire l'application Windows
+
+```powershell
 npm run build
 npm run dist
 ```
 
-La sortie `release/` contient les artefacts Windows après compilation, mais **n'est pas conservée dans GitHub**. Cette archive inclut le `package-lock.json` permettant une installation reproductible via `npm ci`.
+Si la compilation et le packaging réussissent, les exécutables installable et portable sont produits dans `release/`. **Ces exécutables ne sont pas conservés dans ce dépôt Git.** Le build n'est pas signé numériquement dans la configuration fournie.
 
-## Tests exécutés
+Les scénarios Electron/Playwright peuvent être lancés sur un poste Windows configuré :
 
-- **22 tests unitaires réussis / 22** sur le projet nettoyé, le 30/10/2026 (Node.js).
-- **TypeScript et ESLint** : contrôles validés en utilisant temporairement les dépendances originales, puis en les retirant.
-- **Non vérifiés sur Windows dans ce passage** : compilation du bridge C#, lancement réel Electron, compatibilité GPU, intégration du profil Microsoft, capteurs matériels, installation et signature des exécutables.
-- Les tests de sécurité inspectent certaines protections IPC, du protocole et de l'accès aux chemins ; ils ne sont pas une garantie absolue de sûreté.
+```powershell
+npm run test:desktop
+```
+
+Consultez le [guide d'installation](docs/INSTALLATION.md) et le [guide de distribution](docs/DEPLOIEMENT.md) avant toute publication d'un exécutable.
+
+## Qualité et état des vérifications
+
+Sur la copie source préparée le **30 octobre 2026** :
+
+- **22 tests unitaires sur 22 réussis** ;
+- vérification TypeScript réussie ;
+- ESLint terminé sans avertissement ;
+- analyse locale de secrets réalisée sur la copie destinée à GitHub.
+
+**À valider séparément sur Windows :** lancement complet de l'interface, compilation et exécution du bridge sur le poste cible, mesures de matériel réel, tests de compatibilité, comportement multiécran, création et installation des `.exe`, désinstallation et tests de sécurité en conditions réelles.
+
+Ces tests ne garantissent pas l'absence de bugs ou de vulnérabilités. Voir [validation](docs/VALIDATION.md) et [audit du projet](docs/AUDIT.md).
+
+## Confidentialité et sécurité
+
+Orbit est conçu pour fonctionner **principalement en local**, sans compte Orbit, publicité, police distante ni télémétrie de diagnostic envoyée à un service distant dans la version actuelle.
+
+- L'interface Electron utilise l'isolation de contexte, le sandbox et une passerelle IPC restreinte.
+- Le collecteur est un programme local ; il ne demande pas de mots de passe Microsoft et ne collecte pas de jetons de connexion.
+- Les préférences sont conservées localement et les informations indisponibles ne sont pas remplacées par de fausses valeurs.
+- Les journaux de diagnostic sont conçus pour être limités et expurgés.
+
+**Attention :** les noms de PC, identifiants matériels, adresses réseau, captures et journaux exportés peuvent être personnels. Ne publiez pas de diagnostics bruts. Aucun système informatique ne peut être garanti sans faille.
+
+En savoir plus : [sécurité et données](docs/SECURITE_DONNEES.md) · [politique de sécurité](SECURITY.md).
+
+## Organisation du dépôt
+
+```text
+src/                   Interface et pages React
+src/pages/             Vues Vue d'ensemble, Matériel, Écrans, etc.
+electron/main/          Fenêtre Electron, collecte et IPC
+electron/preload/       API contrôlée exposée à React
+system/native/         Collecteurs C# pour les API Windows
+system/collectors/     Normalisation des informations système
+shared/                Contrats, logique et validations
+scripts/               Développement, tests et packaging
+tests/                 Tests unitaires
+e2e/                   Scénarios desktop Playwright
+assets/                Identité visuelle et licences tierces
+docs/                  Documentation technique et sécurité
+.github/workflows/      Vérifications et compilation Windows
+```
 
 ## Documentation
 
-- [Architecture et composants](docs/ARCHITECTURE.md)
-- [Prérequis et build Windows](docs/INSTALLATION.md)
-- [Informations matérielles / limites](docs/HARDWARE.md)
-- [Données personnelles et sécurité](docs/SECURITE_DONNEES.md)
+- [Installation et compilation](docs/INSTALLATION.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Comprendre les mesures matérielles](docs/HARDWARE.md)
 - [Validation et tests](docs/VALIDATION.md)
-- [Workflow de livraison](docs/DEPLOIEMENT.md)
-- [Compétences pour l'université](docs/COMPETENCES_ET_PARCOURS.md)
-- [Signalements](SECURITY.md)
+- [Sécurité et confidentialité](docs/SECURITE_DONNEES.md)
+- [Construction et distribution](docs/DEPLOIEMENT.md)
+- [Contribuer au projet](docs/COMMENT_CONTRIBUER.md)
+- [Compétences et parcours informatique](docs/COMPETENCES_ET_PARCOURS.md)
 
-## Vie privée et licence
+## Objectifs d'amélioration
 
-Orbit traite des informations susceptibles d'identifier une machine (nom du PC, identifiants matériels, réseaux, utilisateur Windows). Ne jamais partager de diagnostics bruts ou de logs non expurgés. Ce dépôt ne contient aucun installateur ni binaire natif. Le paquet déclare `UNLICENSED` ; tous droits réservés tant qu'une licence adaptée n'est pas décidée. Respecter les licences des composants tiers (voir `THIRD_PARTY_NOTICES.md`).
+- Tester l'application sur plusieurs PC Windows et sur des configurations mono/multi-GPU.
+- Valider les informations d'écrans, les périphériques radio et les cas où les batteries ne sont pas détectables.
+- Finaliser les contrôles qualité des installateurs, les signatures et la distribution.
+- Améliorer l'accessibilité et la robustesse des vues à différentes résolutions et échelles Windows.
+
+Ces éléments sont des **objectifs**, pas des fonctionnalités présentées comme déjà vérifiées.
+
+## À propos
+
+Orbit 2.0 est un projet personnel de développement logiciel visant à réunir **interface utilisateur, architecture desktop, programmation système et sécurité des données** dans une seule application.
+
+Développé par [carlxwj](https://github.com/carlxwj).
+
+**Licence :** code source actuellement `UNLICENSED` — tous droits réservés. La publication sur GitHub n'autorise pas automatiquement la redistribution ou la réutilisation du code. Voir également [mentions des composants tiers](THIRD_PARTY_NOTICES.md).
