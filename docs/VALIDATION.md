@@ -34,9 +34,17 @@ Les cas multi-GPU, multi-écran et batteries connues sont des **fixtures unitair
 
 Test court après chauffe : environ 8,1 secondes, 8 mesures, environ **0,77 % d’un cœur CPU** pour le collecteur et **67 Mio de working set**. Ce n’est ni une moyenne longue durée, ni le coût complet d’Electron/React. À 3 secondes et en économie arrière-plan, la cadence diminue ; aucun chiffre non mesuré n’est promis pour l’application complète.
 
-## Bloqué par l’environnement
+## Validation complémentaire sur GitHub Actions (30 octobre 2026)
 
-`npm install` échoue avec **EACCES** lors des requêtes vers `registry.npmjs.org`. Les dépendances ne sont pas installées.
+Un environnement Windows de GitHub Actions a depuis permis de franchir les limites de l'audit local initial. Le workflow `Windows build` exécute `npm ci`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run native`, `npm run test:native` et `npm run dist -- --publish never`, puis publie les exécutables générés comme artefacts temporaires.
+
+Le test de démarrage du collecteur C# a été rendu moins sensible aux délais de lancement à froid sur les runners partagés, sans modifier le délai de réponse utilisé par l'application en usage normal. Le workflow Windows est aussi lancé sur les Pull Requests afin de détecter des régressions avant fusion. Une vérification complète de cette chaîne a réussi le 30 octobre 2026, notamment la construction et l'envoi des exécutables.
+
+**Limite :** compiler sur un runner Windows ne démontre pas que les installateurs sont signés, ni que l'application fonctionne sur chaque PC, capteur, écran ou périphérique réel. La matrice de validation manuelle ci-dessous reste à exécuter.
+
+## Limitations de l'environnement d'audit initial (historique)
+
+Pendant le premier audit local, `npm install` échouait avec **EACCES** lors des requêtes vers `registry.npmjs.org`. Ce constat historique **ne décrit plus l'état du workflow GitHub Actions**, qui installe et compile désormais les dépendances avec succès.
 
 | Commande | Résultat réel |
 | --- | --- |
